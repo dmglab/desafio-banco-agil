@@ -1,4 +1,3 @@
-Markdown
 # Central de Atendimento Multi-Agente - Banco Ágil
 
 ## Visão Geral do Projeto
@@ -58,3 +57,7 @@ Inicie o servidor da aplicação executando o comando:
 
 Bash
 mesop app.py
+
+### 4. Acesso à Interface
+Após a inicialização, abra o seu navegador de internet e acesse o endereço local:
+http://localhost:32123
