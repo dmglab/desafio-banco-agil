@@ -5,8 +5,8 @@ import mesop as me
 import mesop.labs as mel
 import pandas as pd
 
-# MEMÓRIA DE SESSÃO (Guarda os dados do cliente enquanto ele conversa no chat)
-@me.state
+# Utilizando @me.stateclass para evitar erro de contexto no carregamento
+@me.stateclass
 class ChatState:
     messages: list = []
     current_agent: str = "triagem"
@@ -18,7 +18,6 @@ class ChatState:
     interview_step: int = 0
     interview_data: dict = {}
 
-# O CÉREBRO DO ATENDIMENTO (Controla as regras dos robôs do Banco Ágil)
 def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
     texto_limpo = texto_usuario.strip().lower()
     
@@ -26,7 +25,6 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
         state.current_agent = "end"
         return "Atendimento encerrado pelo cliente. O Banco Ágil agradece o seu contato!"
 
-    # ROBÔ 1: TRIAGEM E SEGURANÇA
     if state.current_agent == "triagem":
         if not state.customer_cpf:
             numeros = "".join(re.findall(r'\d+', texto_limpo))
@@ -37,14 +35,15 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
         
         if not state.authenticated:
             try:
-                df = pd.read_csv("clientes.csv", dtype={"cpf": str})
+                # Buscando o arquivo dentro da pasta data/ conforme estrutura do GitHub
+                df = pd.read_csv("data/clientes.csv", dtype={"cpf": str})
                 cliente = df[(df["cpf"] == state.customer_cpf) & (df["data_nascimento"] == texto_usuario.strip())]
                 
                 if not cliente.empty:
                     state.authenticated = True
                     state.current_score = int(cliente.iloc[0]["score"])
                     state.current_limit = float(cliente.iloc[0]["limite"])
-                    return f"Autenticação realizada com sucesso! Como posso ajudar você hoje? (Você pode pedir 'aumento de limite' ou consultar taxas de 'câmbio')."
+                    return "Autenticação realizada com sucesso! Como posso ajudar você hoje? (Você pode pedir 'aumento de limite' ou consultar taxas de 'câmbio')."
                 else:
                     state.auth_attempts += 1
                     if state.auth_attempts >= 3:
@@ -54,7 +53,6 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
             except Exception:
                 return "Erro ao ler a base de dados. Digite a data de nascimento novamente:"
 
-        # Direcionamento Automático por intenção de texto
         if any(k in texto_limpo for k in ["limite", "crédito", "aumento"]):
             state.current_agent = "credito"
             return f"Você está na Central de Crédito. Seu limite atual é R$ {state.current_limit:.2f}. Qual o novo valor total de limite que deseja solicitar?"
@@ -62,7 +60,6 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
             state.current_agent = "cambio"
             return "Você está na Central de Câmbio. A cotação comercial simulada do Dólar hoje é de R$ 5,25. Algo mais em que posso ajudar?"
 
-    # ROBÔ 2: ANÁLISE DE CRÉDITO E GERENCIAL DE LOGS ISO 8601
     if state.current_agent == "credito":
         valores = re.findall(r'\d+', texto_limpo)
         if valores:
@@ -70,21 +67,24 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
             status_pedido = "rejeitado"
             
             try:
-                df_score = pd.read_csv("score_limite.csv")
+                # Buscando o arquivo dentro da pasta data/ conforme estrutura do GitHub
+                df_score = pd.read_csv("data/score_limite.csv")
                 faixa = df_score[df_score["score_minimo"] <= state.current_score]
                 if not faixa.empty and novo_limite <= float(faixa.iloc[-1]["limite_maximo"]):
                     status_pedido = "approved"
             except Exception:
                 if state.current_score >= 600: status_pedido = "approved"
 
-            # Registro de Log exigido no padrão ISO 8601
             timestamp = datetime.utcnow().isoformat() + "Z"
+            
+            # Histórico de logs salvo na pasta data/ para manter a organização
+            log_caminho = "data/solicitacoes_aumento_limite.csv"
             log_linha = f"{state.customer_cpf},{timestamp},{state.current_limit},{novo_limite},{status_pedido}\n"
             
-            if not os.path.exists("solicitacoes_aumento_limite.csv"):
-                with open("solicitacoes_aumento_limite.csv", "w", encoding="utf-8") as f:
+            if not os.path.exists(log_caminho):
+                with open(log_caminho, "w", encoding="utf-8") as f:
                     f.write("cpf_cliente,data_hora_solicitacao,limite_atual,novo_limite_solicitado,status_pedido\n")
-            with open("solicitacoes_aumento_limite.csv", "a", encoding="utf-8") as f:
+            with open(log_caminho, "a", encoding="utf-8") as f:
                 f.write(log_linha)
 
             if status_pedido == "approved":
@@ -102,7 +102,6 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
             state.current_agent = "end"
             return "Entendido. Central de crédito finalizada. Obrigado por utilizar o Banco Ágil!"
 
-    # ROBÔ 3: ENTREVISTA COM FÓRMULA MATEMÁTICA PONDERADA
     if state.current_agent == "entrevista":
         passo = state.interview_step
         if passo == 1:
@@ -124,7 +123,6 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
         elif passo == 5:
             dividas = texto_limpo
             
-            # Parametria matemática oficial do edital
             p_renda = 30
             p_emp = {"formal": 300, "autônomo": 200, "desempregado": 0}
             p_dep = {"0": 100, "1": 80, "2": 60, "3+": 30, "3": 30}
@@ -136,7 +134,6 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
             dep = state.interview_data.get("dependentes", "0")
             div = "sim" if "sim" in dividas else "não"
             
-            # Cálculo do novo Score travado entre 0 e 1000
             novo_score = int(((renda / (despesas + 1)) * p_renda) + p_emp.get(emp, 0) + p_dep.get(dep, 30) + p_div.get(div, 100))
             state.current_score = max(0, min(1000, novo_score))
             
@@ -144,14 +141,12 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
             state.interview_step = 0
             return f"Entrevista concluída! Seu score foi recalculado para {state.current_score} pontos. De volta à Central de Crédito: Digite novamente o valor do limite que deseja solicitar:"
 
-    # ROBÔ 4: CENTRAL DE CÂMBIO
     if state.current_agent == "cambio":
         state.current_agent = "end"
         return "Consulta efetuada. O Banco Ágil agradece o contato!"
 
     return "Desculpe, não compreendi. Como posso ajudar?"
 
-# INTERFACE GRÁFICA NATIVA DA GOOGLE (Google Mesop Chat)
 @me.page(path="/")
 def page():
     me.text("🏦 Central de Atendimento - Banco Ágil", type="headline-5", style=me.Style(margin=me.Margin(bottom=20, top=10)))
