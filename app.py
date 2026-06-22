@@ -35,8 +35,8 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
         
         if not state.authenticated:
             try:
-                # Buscando o arquivo dentro da pasta data/ conforme estrutura do GitHub
-                df = pd.read_csv("data/clientes.csv", dtype={"cpf": str})
+                # Buscando arquivos diretamente na raiz
+                df = pd.read_csv("clientes.csv", dtype={"cpf": str})
                 cliente = df[(df["cpf"] == state.customer_cpf) & (df["data_nascimento"] == texto_usuario.strip())]
                 
                 if not cliente.empty:
@@ -67,8 +67,8 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
             status_pedido = "rejeitado"
             
             try:
-                # Buscando o arquivo dentro da pasta data/ conforme estrutura do GitHub
-                df_score = pd.read_csv("data/score_limite.csv")
+                # Buscando arquivo na raiz
+                df_score = pd.read_csv("score_limite.csv")
                 faixa = df_score[df_score["score_minimo"] <= state.current_score]
                 if not faixa.empty and novo_limite <= float(faixa.iloc[-1]["limite_maximo"]):
                     status_pedido = "approved"
@@ -77,8 +77,8 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
 
             timestamp = datetime.utcnow().isoformat() + "Z"
             
-            # Histórico de logs salvo na pasta data/ para manter a organização
-            log_caminho = "data/solicitacoes_aumento_limite.csv"
+            # Log salvo na raiz
+            log_caminho = "solicitacoes_aumento_limite.csv"
             log_linha = f"{state.customer_cpf},{timestamp},{state.current_limit},{novo_limite},{status_pedido}\n"
             
             if not os.path.exists(log_caminho):
