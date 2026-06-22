@@ -66,7 +66,7 @@ Instale as bibliotecas necessárias executando:
 Bash
 pip install -r requirements.txt
 
-###3. Execução do Servidor
+### 3. Execução do Servidor
 Inicie o servidor da aplicação executando o comando:
 
 Bash
