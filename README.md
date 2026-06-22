@@ -1,42 +1,55 @@
-#  Central de Atendimento Multi-Agente - Banco Ágil
+# Central de Atendimento Multi-Agente - Banco Agil
 
-##  Visão Geral do Projeto
-Este repositório apresenta a solução completa para o desafio do **Banco Ágil**, uma central de atendimento bancário baseada em agentes cognitivos especializados com escopos estritamente blindados. O sistema gerencia interações de triagem de segurança, análise de propostas de crédito e recálculo algorítmico de score através de uma interface de chat unificada.
+## Visao Geral do Projeto
+Este repositorio apresenta a solucao completa para o desafio do Banco Agil, uma central de atendimento bancario baseada em agentes cognitivos especializados com escopos estritamente blindados. O sistema gerencia interacoes de triagem de seguranca, analise de propostas de credito e recalculgocritmico de score atraves de uma interface de chat unificada.
 
-##  Proteção de Propriedade Intelectual e Direitos Autorais
-Este projeto está legalmente protegido sob as diretrizes da **Licença Pública GNU v3.0 (GPL-3.0)**, anexada ao arquivo `LICENSE` deste repositório. É estritamente proibida a cópia, distribuição ou utilização comercial de qualquer trecho desta arquitetura de software para fins lucrativos ou institucionais sem a devida autorização do autor, sob pena das sanções previstas na lei de patentes e direitos autorais. O acesso a este código destina-se única e exclusivamente à avaliação técnica em processos seletivos.
+## Protecao de Propriedade Intelectual e Direitos Autorais
+Este projeto esta legalmente protegido sob as diretrizes da Licenca Publica GNU v3.0 (GPL-3.0), anexada ao arquivo LICENSE deste repositorio. E estritamente proibida a copia, distribuicao ou utilizacao comercial de qualquer trecho desta arquitetura de software para fins lucrativos ou institucionais sem a devida autorizacao do autor, sob pena das sancoes previstas na lei de patentes e direitos autorais. O acesso a este codigo destina-se unica e exclusivamente a avaliacao tecnica em processos seletivos.
 
-##  Arquitetura do Sistema e Engenharia de Fluxos
-O projeto adota a arquitetura de **Máquina de Estados Finita (FSM)** para gerenciar a transição implícita entre os robôs. O controle da sessão reside em um estado compartilhado (`ChatState`), impedindo vazamento de contexto ou perda do histórico de mensagens.
+## Dados de Teste Homologados (Para o Avaliador)
+Para testar os fluxos de triagem, erro, credito e entrevista financeira, utilize os dados abaixo que ja estao cadastrados no sistema:
 
-1. **Agente de Triagem:** Porta de entrada obrigatória. Realiza buscas indexadas e bloqueia o terminal de atendimento na 3ª falha consecutiva de login por motivos de compliance bancário.
-2. **Agente de Crédito:** Avalia propostas de aumento em tempo real contra tabelas de risco. Grava logs incrementais contendo carimbos de tempo sob a normativa internacional **ISO 8601** (UTC/Z).
-3. **Agente de Entrevista:** Executa uma sub-máquina de estados sequencial isolada para coleta de dados socioeconômicos, aplicando um motor matemático parametrizado para recalcular o score.
-4. **Agente de Câmbio:** Atende a requisições de mercado e encerra o ciclo de forma limpa.
+### Cliente 1: Carlos Silva
+* CPF: 12345678901
+* Data de Nascimento: 15/05/1990
+* Sugestao de teste: Faca o login com esses dados e peca: "Quero ver a cotacao do dolar".
 
-###  Manipulação de Dados (Persistência)
-* `clientes.csv`: Base de identificação de clientes e saldos de score.
-* `score_limite.csv`: Tabela estática com limites permitidos por faixa.
-* `solicitacoes_aumento_limite.csv`: Arquivo de registro "Append-Only" preenchido automaticamente pelo robô no padrão internacional de data e hora **ISO 8601**.
+### Cliente 2: Ana Souza
+* CPF: 98765432100
+* Data de Nascimento: 20/10/1985
+* Sugestao de teste: Faca o login com esses dados (ela tem score baixo) e peca um limite alto: "Quero 25000 de limite". O robo vai recusar e oferecer a entrevista financeira para recalcular o score dela.
 
-##  Funcionalidades Implementadas
-- [x] Lógica de autenticação com limite rígido de retentativas (3 falhas bloqueiam a sessão).
-- [x] Roteamento semântico baseado na intenção do usuário sem comandos manuais de transição.
-- [x] Motor de cálculo de score dinâmico parametrizado com limitadores lógicos entre 0 e 1000 pontos.
-- [x] Persistência estruturada em arquivos CSV locais com tratamento de erros preventivo.
+## Arquitetura do Sistema e Engenharia de Fluxos
+O projeto adota a arquitetura de Maquina de Estados Finita (FSM) para gerenciar a transicao implicita entre os robos. O controle da sessao reside em um estado compartilhado (ChatState), impedindo vazamento de contexto ou perda do historico de mensagens.
 
-##  Escolhas Técnicas e Justificativas: Inovação com Stack 100% Google
-Diferenciando-se das implementações convencionais de mercado que comumente recorrem ao Streamlit, este projeto foi arquitetado utilizando uma abordagem **Google-Native**:
-* **Google Mesop UI:** Adotado como o front-end principal. Por ser o novo framework oficial open-source da Google voltado para aplicativos de Inteligência Artificial Generativa, o Mesop oferece um ecossistema reativo baseado em funções Python muito mais veloz, eliminando gargalos de re-renderização comuns e garantindo o gerenciamento de sessões estritamente tipado.
-* **Isolamento por Máquina de Estados:** A lógica foi implementada nativamente em Python sobre a estrutura do Mesop, garantindo resiliência total nos ciclos de retorno (Ex: Crédito -> Entrevista -> Retorno Automático ao Crédito).
+1. Agente de Triagem: Porta de entrada obrigatoria. Realiza buscas indexadas e bloqueia o terminal de atendimento na 3ª falha consecutiva de login por motivos de compliance bancario.
+2. Agente de Credito: Avalia propostas de aumento em tempo real contra tabelas de risco. Grava logs incrementais contendo carimbos de tempo sob a normativa internacional ISO 8601 (UTC/Z).
+3. Agente de Entrevista: Executa uma sub-maquina de estados sequencial isolada para coleta de dados socioeconomicos, aplicando um motor matematico parametrizado para recalcular o score.
+4. Agente de Cambio: Atende a requisicoes de mercado e encerra o ciclo de forma limpa.
 
-##  Desafios Enfrentados e Soluções
-* *Desafio da Coleta Linear:* Fazer com que o cliente responda às 5 perguntas da entrevista financeira em ordem correta.
-* *Solução:* Desenvolvimento de um controle indexador por etapas (`interview_step`). O robô intercepta qualquer mensagem e só avança a régua de cálculo após a validação do input anterior.
+### Manipulacao de Dados (Persistencia)
+* clientes.csv: Base de identificacao de clientes e saldos de score.
+* score_limite.csv: Tabela estatica com limites permitidos por faixa.
+* solicitacoes_aumento_limite.csv: Arquivo de registro "Append-Only" preenchido automaticamente pelo robo no padrao internacional de data e hora ISO 8601.
 
-##  Tutorial de Execução e Homologação de Testes
+## Funcionalidades Implementadas
+- [x] Logica de autenticacao com limite rigido de retentativas (3 falhas bloqueiam a sessao).
+- [x] Roteamento semantico baseado na intencao do usuario sem comandos manuais de transicao.
+- [x] Motor de calculo de score dinamico parametrizado com limitadores logicos entre 0 e 1000 pontos.
+- [x] Persistencia estruturada em arquivos CSV locais com tratamento de erros preventivo.
 
-### 1. Preparação do Ambiente
-Abra o prompt de comando ou terminal na raiz do projeto e instale as dependências:
+## Escolhas Tecnicas e Justificativas: Inovacao com Stack 100% Google
+Diferenciando-se das implementacoes convencionais de mercado que comumente recorrem ao Streamlit, este projeto foi arquitetado utilizando uma abordagem Google-Native:
+* Google Mesop UI: Adotado como o front-end principal. Por ser o novo framework oficial open-source da Google voltado para aplicativos de Inteligencia Artificial Generativa, o Mesop oferece um ecossistema reativo baseado em funcoes Python muito mais veloz, eliminando gargalos de re-renderizacao comuns e garantindo o gerenciamento de sessoes estritamente tipado.
+* Isolamento por Maquina de Estados: A logica foi implementada nativamente em Python sobre a estrutura do Mesop, garantindo resiliencia total nos ciclos de retorno (Ex: Credito -> Entrevista -> Retorno Automaotico ao Credito).
+
+## Desafios Enfrentados e Solucoes
+* Desafio da Coleta Linear: Fazer com que o cliente responda as 5 perguntas da entrevista financeira em ordem correta.
+* Solucao: Desenvolvimento de um controle indexador por etapas (interview_step). O robo intercepta qualquer mensagem e so avanca a regua de calculo apos a validacao do input anterior.
+
+## Tutorial de Execucao e Homologacao de Testes
+
+### 1. Preparacao do Ambiente
+Abra o prompt de comando ou terminal na raiz do projeto e instale as dependencias:
 ```bash
 pip install -r requirements.txt
