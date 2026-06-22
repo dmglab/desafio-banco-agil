@@ -78,3 +78,11 @@ mesop app.py
 
 Após a inicialização, abra o seu navegador de internet e acesse o endereço local:
 http://localhost:32123
+
+### Notas de Engenharia para o Avaliador:
+
+Ambiente: O projeto foi desenvolvido em Python 3.10+.
+
+Persistência: O sistema utiliza pandas para ler os CSVs na pasta data/. Certifique-se de que a estrutura de pastas foi mantida ao clonar o repositório.
+
+Blindagem: Cada agente atua em um escopo de memória isolado. Caso o chat apresente comportamento inesperado, recarregue a página para limpar o ChatState (reset total da sessão).
