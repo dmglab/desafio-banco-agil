@@ -27,7 +27,7 @@ def processar_atendimento(texto_usuario: str, state: ChatState) -> str:
             numeros = "".join(re.findall(r'\d+', texto_limpo))
             if len(numeros) == 11:
                 state.customer_cpf = numeros
-                return "CPF localizado. Por favor, digite sua Data de Nascimento (Ex: 15/05/1990):"
+                return "CPF localizado. Por favor, digite sua Data de Nascimento (Ex: dd/mm/aaaa):"
             return "Olá! Digite seu CPF para iniciar:"
         
         if not state.authenticated:
